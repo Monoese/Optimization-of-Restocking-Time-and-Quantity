@@ -1,4 +1,12 @@
-from mip import Model, xsum, minimize, maximize, INTEGER, BINARY
+"""
+This script can be used to optimize restocking times and quantities for a storage or a facility.
+Suppose that we have a storage for multiple types of item, and it's an intermediary node within a supply chain. The 
+items stored at this storage will be transported or consumed daily and we can arrange restocking delivery from the 
+upstream suppliers. However, each item has a cost and each delivery has a cost as well. What we want to do is to 
+optimize the restocking times and quantities so that the total cost is minimized.
+"""
+
+from mip import Model, xsum, minimize, INTEGER, BINARY
 import numpy as np
 np.random.seed(9824)
 
@@ -9,7 +17,7 @@ capacity = np.array([200])
 print('capacity\n', capacity)
 
 # scheduled consumption of every items. index = [x,y] = [day,item]
-consumption = np.full((10,2),10)
+consumption = np.full((100,2),10)
 print('consumption\n', consumption)
 
 # initial quantity of every item. index = [x] = [item]
