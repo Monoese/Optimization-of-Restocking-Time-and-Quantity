@@ -5,23 +5,23 @@ np.random.seed(9824)
 # input of mathematical model
 
 # storage space volume
-capacity = np.array([1000])
+capacity = np.array([200])
 print('capacity\n', capacity)
 
 # scheduled consumption of every items. index = [x,y] = [day,item]
-consumption = np.random.randint(10, size=(7,2))
+consumption = np.full((10,2),10)
 print('consumption\n', consumption)
 
 # initial quantity of every item. index = [x] = [item]
-initial_quantity = np.random.randint(10, size=2)
+initial_quantity = np.full((2),0)
 print('initial_quantity\n', initial_quantity)
 
 # safety stocks of each item. default values are 10s
-safety_stock = np.array([10,10])
+safety_stock = np.full((2),0)
 print('safety_stock\n', safety_stock)
 
 # prices of each item
-price = np.random.randint(5, size=2)
+price = np.array([1,2])
 print('price\n', price)
 
 # delivery fee. default value is 20
@@ -42,7 +42,7 @@ suppliers = set(range(len(delivery_fee)))
 days = set(range(len(consumption)))
 
 # S is set of indexes of all types of storage(dry, cooler, freezer)
-S = set(range(len(capacity)))
+storages = set(range(len(capacity)))
 
 """
 T is set of indexes of all ancillary binary variable for if-else statements.
@@ -54,19 +54,20 @@ T = {0,1}
 model = Model()
 
 # x is purchased quantity of every item on every day
-x = [[model.add_var(var_type=INTEGER, lb=0) for day in days] for i in items]
+x = [[model.add_var(var_type=INTEGER, lb=0) for day in days] for item in items]
 # y is delivery plan of every supplier on every day
-y = [[model.add_var(var_type=BINARY, lb=-10000) for day in days] for supplier in suppliers]
+y = [[model.add_var(var_type=BINARY, lb=0) for day in days] for supplier in suppliers]
 # z is an ancillary binary variable for if-else statement
-z = [[[model.add_var(var_type=BINARY, lb=-10000) for k in T] for day in days] for supplier in suppliers]
+z = [[[model.add_var(var_type=BINARY, lb=0) for k in T] for day in days] for supplier in suppliers]
 
 # objective function is to minimize total cost which is a sum of purchase cost and delivery cost
 model.objective = minimize(xsum(x[item][day] * price[item] for item in items for day in days) + xsum(y[supplier][day] * delivery_fee[supplier] for supplier in suppliers for day in days))
 
 # storage space constraint
-for i in S:
+for storage in storages:
     for day in days:
-        model += xsum(initial_quantity[item] * volume[item] + x[item][day_past_plus_1] * volume[item] - consumption[day_past][item] * volume[item] for item in items for day_past_plus_1 in days if day_past_plus_1 <= day for day_past in days if day_past < day) <= capacity[i]
+        model += xsum(initial_quantity[item] * volume[item] for item in items) + xsum(volume[item] * x[item][delivery_day] for item in items for delivery_day in days if delivery_day <= day) - xsum(volume[item] * consumption[consumption_day][item] for item in items for consumption_day in days if consumption_day < day) <= capacity[storage]
+
 
 # demand constraint. demand of each item must be covered by available quantity of the item at the beginning of each day
 for item in items:
@@ -76,19 +77,19 @@ for item in items:
 # if statements
 for supplier in suppliers:
     for day in days:
-        model += 1 - y[supplier][day] <= 10000 * z[supplier][day][0]
+        model += 1 - y[supplier][day] <= 100000 * z[supplier][day][0]
 
 for supplier in suppliers:
     for day in days:
-        model += xsum(x[item][day] for item in items) <= 10000 * (1 - z[supplier][day][0])
+        model += xsum(x[item][day] for item in items) <= 100000 * (1 - z[supplier][day][0])
 
 for supplier in suppliers:
     for day in days:
-        model += y[supplier][day] <= 10000 * z[supplier][day][1]
+        model += y[supplier][day] <= 100000 * z[supplier][day][1]
 
 for supplier in suppliers:
     for day in days:
-        model += 1 - xsum(x[item][day] for item in items) <= 10000 * (1 - z[supplier][day][1])
+        model += 1 - xsum(x[item][day] for item in items) <= 100000 * (1 - z[supplier][day][1])
 
 # Safety stock constraint
 for item in items:
