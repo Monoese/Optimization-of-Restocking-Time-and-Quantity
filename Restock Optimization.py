@@ -1,7 +1,7 @@
 """
 This script can be used to optimize restocking times and quantities for a storage or a facility.
 Suppose that we have a storage for multiple types of item, and it's an intermediary node within a supply chain. The 
-items stored at this storage will be transported or consumed daily and we can arrange restocking delivery from the 
+items stored at this storage will be replenished or consumed daily and we can arrange restocking delivery from the 
 upstream suppliers. However, each item has a cost and each delivery has a cost as well. What we want to do is to 
 optimize the restocking times and quantities so that the total cost is minimized.
 """
@@ -110,7 +110,7 @@ restock_plan = np.zeros((len(safety_stock),len(consumption)))
 for i in range(len(safety_stock)):
     for j in range(len(consumption)):
         restock_plan[i][j] = x[i][j].x
-print('restock plan is\n', restock_plan,'\neach integers is number of a item delivered on a day')
+print('restock plan is\n', restock_plan,'\neach integers is number of an item delivered on a day')
 
 delivery_plan = np.zeros((len(delivery_fee),len(consumption)))
 for i in range(len(delivery_fee)):
